@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Galeria de la classe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Aquest fitxer NO s'ha de tocar. -->
+
+  <h1>Galeria de la classe</h1>
+  <p class="subtitol">CFGM Sistemes Microinformàtics i Xarxes · IES S'Arenal · Organitzada per en Pau</p>
+
+  <div id="galeria" class="graella"></div>
+  <p id="estat">Carregant les fitxes...</p>
+
+  <script>
+    // ------------------------------------------------------------------
+    // La galeria llegeix automàticament tots els fitxers .html de la
+    // carpeta alumnes/ fent servir l'API de GitHub. Així, cada PR
+    // fusionada afegeix una fitxa nova sense haver de tocar aquest fitxer.
+    //
+    // Si la web es publica a https://USUARI.github.io/REPO/ no cal
+    // configurar res. Si no, omple aquestes dues constants:
+    // ------------------------------------------------------------------
+    const PROPIETARI = "";   // p. ex. "profe-guillem"
+    const REPOSITORI = "";   // p. ex. "galeria-classe"
+
+    const galeria = document.getElementById("galeria");
+    const estat = document.getElementById("estat");
+
+    function detectarRepositori() {
+      if (PROPIETARI && REPOSITORI) return { owner: PROPIETARI, repo: REPOSITORI };
+      const host = location.hostname;                 // USUARI.github.io
+      if (!host.endsWith(".github.io")) return null;
+      const owner = host.replace(".github.io", "");
+      const primer = location.pathname.split("/").filter(Boolean)[0];
+      const repo = primer && !primer.endsWith(".html") ? primer : host;
+      return { owner, repo };
+    }
+
+    async function carregarFitxa(nomFitxer) {
+      const resposta = await fetch("alumnes/" + nomFitxer, { cache: "no-store" });
+      if (!resposta.ok) return null;
+      const doc = new DOMParser().parseFromString(await resposta.text(), "text/html");
+      const enllac = doc.querySelector(".fitxa a") || doc.querySelector("a");
+      return {
+        fitxer: nomFitxer,
+        nom: (doc.querySelector("h1")?.textContent || nomFitxer).trim(),
+        frase: (doc.querySelector(".fitxa p")?.textContent || "").trim(),
+        web: enllac ? enllac.getAttribute("href") : null,
+      };
+    }
+
+    function pintarFitxa(f) {
+      const div = document.createElement("div");
+      div.className = "fitxa";
+
+      const h2 = document.createElement("h2");
+      h2.textContent = f.nom;
+      div.appendChild(h2);
+
+      if (f.frase) {
+        const p = document.createElement("p");
+        p.textContent = f.frase;
+        div.appendChild(p);
+      }
+
+      const a = document.createElement("a");
+      a.href = f.web || ("alumnes/" + f.fitxer);
+      a.textContent = f.web ? "Visita la seva web →" : "Veure la fitxa →";
+      a.target = "_blank";
+      a.rel = "noopener";
+      div.appendChild(a);
+
+      galeria.appendChild(div);
+    }
+
+    async function iniciar() {
+      const info = detectarRepositori();
+      if (!info) {
+        estat.innerHTML = '<span class="avis">La galeria només funciona publicada a GitHub Pages ' +
+          '(o omplint PROPIETARI i REPOSITORI a l\'index.html).</span>';
+        return;
+      }
+
+      try {
+        const url = `https://api.github.com/repos/${info.owner}/${info.repo}/contents/alumnes`;
+        const resposta = await fetch(url);
+        if (!resposta.ok) throw new Error("API de GitHub: " + resposta.status);
+
+        const fitxers = (await resposta.json())
+          .filter(f => f.type === "file" && f.name.endsWith(".html"))
+          .map(f => f.name);
+
+        const fitxes = (await Promise.all(fitxers.map(carregarFitxa)))
+          .filter(Boolean)
+          .sort((a, b) => a.nom.localeCompare(b.nom, "ca"));
+
+        fitxes.forEach(pintarFitxa);
+        estat.textContent = fitxes.length + " fitxes a la galeria.";
+      } catch (error) {
+        estat.innerHTML = '<span class="avis">No s\'han pogut carregar les fitxes (' +
+          error.message + '). Torna-ho a provar d\'aquí a uns minuts.</span>';
+      }
+    }
+
+    iniciar();
+  </script>
+
+</body>
+</html>
