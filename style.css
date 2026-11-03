@@ -1,0 +1,55 @@
+/* Estils de la Galeria de la classe. Els alumnes NO han de tocar aquest fitxer. */
+
+body {
+  font-family: system-ui, sans-serif;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  background: #f4f6fb;
+  color: #1f2937;
+}
+
+h1 {
+  margin-bottom: 0.25rem;
+}
+
+.subtitol {
+  color: #4b5563;
+  margin-top: 0;
+}
+
+.graella {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.fitxa {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.fitxa h1,
+.fitxa h2 {
+  font-size: 1.15rem;
+  margin: 0 0 0.5rem;
+}
+
+.fitxa p {
+  margin: 0 0 1rem;
+}
+
+a {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.avis {
+  background: #fff7ed;
+  border-left: 4px solid #f97316;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+}
